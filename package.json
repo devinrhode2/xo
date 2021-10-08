@@ -16,7 +16,7 @@
 		"node": ">=12.20"
 	},
 	"scripts": {
-		"test": "node cli.js && nyc ava"
+		"test": "eslint --quiet . --ext .js,.cjs && nyc ava"
 	},
 	"files": [
 		"config",
@@ -84,7 +84,15 @@
 		"meow": "^10.1.1",
 		"micromatch": "^4.0.4",
 		"open-editor": "^3.0.0",
+<<<<<<< HEAD
 		"prettier": "^2.4.1",
+=======
+		"p-filter": "^2.1.0",
+		"p-map": "^5.1.0",
+		"p-reduce": "^3.0.0",
+		"path-exists": "^4.0.0",
+		"prettier": "^2.3.2",
+>>>>>>> parent of 3d10431 (Revert #584 memory regression)
 		"semver": "^7.3.5",
 		"slash": "^4.0.0",
 		"to-absolute-glob": "^2.0.2",
@@ -101,13 +109,18 @@
 		"temp-write": "^5.0.0",
 		"webpack": "^5.56.0"
 	},
-	"xo": {
-		"ignores": [
-			"test/fixtures",
-			"test/temp",
-			"coverage"
+	"eslintConfig": {
+		"extends": [
+			"eslint-config-xo",
+			"./config/plugins.cjs",
+			"./config/overrides.cjs"
 		]
 	},
+	"eslintIgnore": [
+		"test/fixtures",
+		"test/temp",
+		"coverage"
+	],
 	"ava": {
 		"files": [
 			"!test/temp"
