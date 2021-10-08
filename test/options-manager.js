@@ -684,7 +684,7 @@ test('mergeWithFileConfigs: typescript files', async t => {
 		},
 		prettierOptions: {},
 	});
-	t.deepEqual(await readJson(result[0].options.tsConfigPath), {
+	t.deepEqual(JSON.parse(await fs.readFile(options.tsConfigPath), {
 		files: [path.resolve(cwd, 'two-spaces.tsx')],
 		compilerOptions: {
 			newLine: 'lf',
@@ -723,7 +723,7 @@ test('mergeWithFileConfigs: typescript files', async t => {
 
 	// Verify that we use the same temporary tsconfig.json for both files group sharing the same original tsconfig.json even if they have different xo config
 	t.is(result[1].options.tsConfigPath, result[2].options.tsConfigPath);
-	t.deepEqual(await readJson(result[1].options.tsConfigPath), {
+	t.deepEqual(JSON.parse(await fs.readFile(options.tsConfigPath), {
 		extends: path.resolve(cwd, 'child/tsconfig.json'),
 		files: [path.resolve(cwd, 'child/extra-semicolon.ts'), path.resolve(cwd, 'child/sub-child/four-spaces.ts')],
 		include: [
