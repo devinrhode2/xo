@@ -12,23 +12,26 @@ module.exports = {
 	// -- End repeat
 	plugins: [
 		'no-use-extend-native',
-		'ava',
+		// AVA is a node.js testing framework, not needed in browser
+		// 'ava',
 		'unicorn',
 		'promise',
 		'import',
-		'node',
+		// Not using node:
+		// 'node',
 		'eslint-comments',
 	],
 	extends: [
-		'plugin:ava/recommended',
+		// 'plugin:ava/recommended',
 		'plugin:unicorn/recommended',
 	],
-	settings: {
-		'import/core-modules': [
-			'electron',
-			'atom',
-		],
-	},
+	// Not doing anything with electron or atom:
+	// settings: {
+	// 	'import/core-modules': [
+	// 		'electron',
+	// 		'atom',
+	// 	],
+	// },
 	rules: {
 		'no-use-extend-native/no-use-extend-native': 'error',
 
@@ -262,93 +265,6 @@ module.exports = {
 			},
 		],
 
-		// Redundant with `import/no-extraneous-dependencies`.
-		// 'node/no-extraneous-import': 'error',
-		// 'node/no-extraneous-require': 'error',
-
-		// Redundant with `import/no-unresolved`.
-		// 'node/no-missing-import': 'error', // This rule is also buggy and doesn't support `node:`.
-		// 'node/no-missing-require': 'error',
-
-		'node/no-unpublished-bin': 'error',
-
-		// We have this enabled in addition to `import/extensions` as this one has an auto-fix.
-		'node/file-extension-in-import': [
-			'error',
-			'always',
-			{
-				// TypeScript doesn't yet support using extensions and fails with error TS2691.
-				'.ts': 'never',
-				'.tsx': 'never',
-			},
-		],
-		'node/no-mixed-requires': [
-			'error',
-			{
-				grouping: true,
-				allowCall: true,
-			},
-		],
-		'node/no-new-require': 'error',
-		'node/no-path-concat': 'error',
-
-		// Disabled because they're too annoying, see:
-		// https://github.com/mysticatea/eslint-plugin-node/issues/105
-		// 'node/no-unpublished-import': [
-		// 	'error',
-		// 	{
-		// 		allowModules: [
-		// 			'electron',
-		// 			'atom'
-		// 		]
-		// 	}
-		// ],
-		// 'node/no-unpublished-require': [
-		// 	'error',
-		// 	{
-		// 		allowModules: [
-		// 			'electron',
-		// 			'atom'
-		// 		]
-		// 	}
-		// ],
-
-		'node/process-exit-as-throw': 'error',
-
-		// Disabled as the rule doesn't exclude scripts executed with `node` but not referenced in 'bin'. See https://github.com/mysticatea/eslint-plugin-node/issues/96
-		// 'node/shebang': 'error',
-
-		'node/no-deprecated-api': 'error',
-		'node/prefer-global/buffer': [
-			'error',
-			'never',
-		],
-		'node/prefer-global/console': [
-			'error',
-			'always',
-		],
-		'node/prefer-global/process': [
-			'error',
-			'never',
-		],
-		'node/prefer-global/text-decoder': [
-			'error',
-			'always',
-		],
-		'node/prefer-global/text-encoder': [
-			'error',
-			'always',
-		],
-		'node/prefer-global/url-search-params': [
-			'error',
-			'always',
-		],
-		'node/prefer-global/url': [
-			'error',
-			'always',
-		],
-		'node/prefer-promises/dns': 'error',
-		'node/prefer-promises/fs': 'error',
 		'eslint-comments/disable-enable-pair': [
 			'error',
 			{
