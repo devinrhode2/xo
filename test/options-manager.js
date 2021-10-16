@@ -1,13 +1,14 @@
-import {promises as fs} from 'node:fs';
 import process from 'node:process';
 import path from 'node:path';
 import test from 'ava';
 import {omit} from 'lodash-es';
+import fsExtra from 'fs-extra';
 import slash from 'slash';
 import createEsmUtils from 'esm-utils';
 import {DEFAULT_EXTENSION, DEFAULT_IGNORES} from '../lib/constants.js';
 import * as manager from '../lib/options-manager.js';
 
+const {readJson} = fsExtra;
 const {__dirname, require, json} = createEsmUtils(import.meta);
 const parentConfig = json.loadSync('./fixtures/nested/package.json');
 const childConfig = json.loadSync('./fixtures/nested/child/package.json');
@@ -493,51 +494,51 @@ test('findApplicableOverrides', t => {
 	]);
 });
 
-test('mergeWithFileConfig: use child if closest', async t => {
+test('mergeWithFileConfig: use child if closest', t => {
 	const cwd = path.resolve('fixtures', 'nested', 'child');
-	const {options} = await manager.mergeWithFileConfig({cwd});
+	const {options} = manager.mergeWithFileConfig({cwd});
 	const expected = {...childConfig.xo, extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd};
 	t.deepEqual(options, expected);
 });
 
-test('mergeWithFileConfig: use parent if closest', async t => {
+test('mergeWithFileConfig: use parent if closest', t => {
 	const cwd = path.resolve('fixtures', 'nested');
-	const {options} = await manager.mergeWithFileConfig({cwd});
+	const {options} = manager.mergeWithFileConfig({cwd});
 	const expected = {...parentConfig.xo, extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd};
 	t.deepEqual(options, expected);
 });
 
-test('mergeWithFileConfig: use parent if child is ignored', async t => {
+test('mergeWithFileConfig: use parent if child is ignored', t => {
 	const cwd = path.resolve('fixtures', 'nested');
 	const filePath = path.resolve(cwd, 'child-ignore', 'file.js');
-	const {options} = await manager.mergeWithFileConfig({cwd, filePath});
+	const {options} = manager.mergeWithFileConfig({cwd, filePath});
 	const expected = {...parentConfig.xo, extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd, filePath};
 	t.deepEqual(options, expected);
 });
 
-test('mergeWithFileConfig: use child if child is empty', async t => {
+test('mergeWithFileConfig: use child if child is empty', t => {
 	const cwd = path.resolve('fixtures', 'nested', 'child-empty');
-	const {options} = await manager.mergeWithFileConfig({cwd});
+	const {options} = manager.mergeWithFileConfig({cwd});
 	t.deepEqual(options, {extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd});
 });
 
-test('mergeWithFileConfig: read engines from package.json', async t => {
+test('mergeWithFileConfig: read engines from package.json', t => {
 	const cwd = path.resolve('fixtures', 'engines');
-	const {options} = await manager.mergeWithFileConfig({cwd});
+	const {options} = manager.mergeWithFileConfig({cwd});
 	const expected = {nodeVersion: enginesConfig.engines.node, extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd};
 	t.deepEqual(options, expected);
 });
 
-test('mergeWithFileConfig: XO engine options supersede package.json\'s', async t => {
+test('mergeWithFileConfig: XO engine options supersede package.json\'s', t => {
 	const cwd = path.resolve('fixtures', 'engines');
-	const {options} = await manager.mergeWithFileConfig({cwd, nodeVersion: '>=8'});
+	const {options} = manager.mergeWithFileConfig({cwd, nodeVersion: '>=8'});
 	const expected = {nodeVersion: '>=8', extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd};
 	t.deepEqual(options, expected);
 });
 
-test('mergeWithFileConfig: XO engine options false supersede package.json\'s', async t => {
+test('mergeWithFileConfig: XO engine options false supersede package.json\'s', t => {
 	const cwd = path.resolve('fixtures', 'engines');
-	const {options} = await manager.mergeWithFileConfig({cwd, nodeVersion: false});
+	const {options} = manager.mergeWithFileConfig({cwd, nodeVersion: false});
 	const expected = {nodeVersion: false, extensions: DEFAULT_EXTENSION, ignores: DEFAULT_IGNORES, cwd};
 	t.deepEqual(options, expected);
 });
@@ -545,7 +546,7 @@ test('mergeWithFileConfig: XO engine options false supersede package.json\'s', a
 test('mergeWithFileConfig: typescript files', async t => {
 	const cwd = path.resolve('fixtures', 'typescript', 'child');
 	const filePath = path.resolve(cwd, 'file.ts');
-	const {options} = await manager.mergeWithFileConfig({cwd, filePath});
+	const {options} = manager.mergeWithFileConfig({cwd, filePath});
 	const expected = {
 		filePath,
 		extensions: DEFAULT_EXTENSION,
@@ -557,7 +558,7 @@ test('mergeWithFileConfig: typescript files', async t => {
 	const expectedConfigPath = new RegExp(`${slash(cwd)}/node_modules/.cache/xo-linter/tsconfig\\..*\\.json[\\/]?$`, 'u');
 	t.regex(slash(options.tsConfigPath), expectedConfigPath);
 	t.deepEqual(omit(options, 'tsConfigPath'), expected);
-	t.deepEqual(JSON.parse(await fs.readFile(options.tsConfigPath)), {
+	t.deepEqual(await readJson(options.tsConfigPath), {
 		extends: path.resolve(cwd, 'tsconfig.json'),
 		files: [path.resolve(cwd, 'file.ts')],
 		include: [slash(path.resolve(cwd, '**/*.ts')), slash(path.resolve(cwd, '**/*.tsx'))],
@@ -567,7 +568,7 @@ test('mergeWithFileConfig: typescript files', async t => {
 test('mergeWithFileConfig: tsx files', async t => {
 	const cwd = path.resolve('fixtures', 'typescript', 'child');
 	const filePath = path.resolve(cwd, 'file.tsx');
-	const {options} = await manager.mergeWithFileConfig({cwd, filePath});
+	const {options} = manager.mergeWithFileConfig({cwd, filePath});
 	const expected = {
 		filePath,
 		extensions: DEFAULT_EXTENSION,
@@ -579,11 +580,164 @@ test('mergeWithFileConfig: tsx files', async t => {
 	const expectedConfigPath = new RegExp(`${slash(cwd)}/node_modules/.cache/xo-linter/tsconfig\\..*\\.json[\\/]?$`, 'u');
 	t.regex(slash(options.tsConfigPath), expectedConfigPath);
 	t.deepEqual(omit(options, 'tsConfigPath'), expected);
-	t.deepEqual(JSON.parse(await fs.readFile(options.tsConfigPath)), {
+	t.deepEqual(await readJson(options.tsConfigPath), {
 		extends: path.resolve(cwd, 'tsconfig.json'),
 		files: [path.resolve(cwd, 'file.tsx')],
 		include: [slash(path.resolve(cwd, '**/*.ts')), slash(path.resolve(cwd, '**/*.tsx'))],
 	});
+});
+
+test('mergeWithFileConfigs: nested configs with prettier', async t => {
+	const cwd = path.resolve('fixtures', 'nested-configs');
+	const paths = [
+		'no-semicolon.js',
+		'child/semicolon.js',
+		'child-override/two-spaces.js',
+		'child-override/child-prettier-override/semicolon.js',
+	].map(file => path.resolve(cwd, file));
+	const result = await manager.mergeWithFileConfigs(paths, {cwd}, [
+		{
+			filepath: path.resolve(cwd, 'child-override', 'child-prettier-override', 'package.json'),
+			config: {overrides: [{files: 'semicolon.js', prettier: true}]},
+		},
+		{filepath: path.resolve(cwd, 'package.json'), config: {semicolon: true}},
+		{
+			filepath: path.resolve(cwd, 'child-override', 'package.json'),
+			config: {overrides: [{files: 'two-spaces.js', space: 4}]},
+		},
+		{filepath: path.resolve(cwd, 'child', 'package.json'), config: {semicolon: false}},
+	]);
+
+	t.deepEqual(result, [
+		{
+			files: [path.resolve(cwd, 'no-semicolon.js')],
+			options: {
+				semicolon: true,
+				cwd,
+				extensions: DEFAULT_EXTENSION,
+				ignores: DEFAULT_IGNORES,
+			},
+			prettierOptions: {},
+		},
+		{
+			files: [path.resolve(cwd, 'child/semicolon.js')],
+			options: {
+				semicolon: false,
+				cwd: path.resolve(cwd, 'child'),
+				extensions: DEFAULT_EXTENSION,
+				ignores: DEFAULT_IGNORES,
+			},
+			prettierOptions: {},
+		},
+		{
+			files: [path.resolve(cwd, 'child-override/two-spaces.js')],
+			options: {
+				space: 4,
+				rules: {},
+				settings: {},
+				globals: [],
+				envs: [],
+				plugins: [],
+				extends: [],
+				cwd: path.resolve(cwd, 'child-override'),
+				extensions: DEFAULT_EXTENSION,
+				ignores: DEFAULT_IGNORES,
+			},
+			prettierOptions: {},
+		},
+		{
+			files: [path.resolve(cwd, 'child-override/child-prettier-override/semicolon.js')],
+			options: {
+				prettier: true,
+				rules: {},
+				settings: {},
+				globals: [],
+				envs: [],
+				plugins: [],
+				extends: [],
+				cwd: path.resolve(cwd, 'child-override', 'child-prettier-override'),
+				extensions: DEFAULT_EXTENSION,
+				ignores: DEFAULT_IGNORES,
+			},
+			prettierOptions: {endOfLine: 'lf', semi: false, useTabs: true},
+		},
+	]);
+});
+
+test('mergeWithFileConfigs: typescript files', async t => {
+	const cwd = path.resolve('fixtures', 'typescript');
+	const paths = ['two-spaces.tsx', 'child/extra-semicolon.ts', 'child/sub-child/four-spaces.ts'].map(file => path.resolve(cwd, file));
+	const configFiles = [
+		{filepath: path.resolve(cwd, 'child/sub-child/package.json'), config: {space: 2}},
+		{filepath: path.resolve(cwd, 'package.json'), config: {space: 4}},
+		{filepath: path.resolve(cwd, 'child/package.json'), config: {semicolon: false}},
+	];
+	const result = await manager.mergeWithFileConfigs(paths, {cwd}, configFiles);
+
+	t.deepEqual(omit(result[0], 'options.tsConfigPath'), {
+		files: [path.resolve(cwd, 'two-spaces.tsx')],
+		options: {
+			space: 4,
+			cwd,
+			extensions: DEFAULT_EXTENSION,
+			ignores: DEFAULT_IGNORES,
+			ts: true,
+		},
+		prettierOptions: {},
+	});
+	t.deepEqual(await readJson(result[0].options.tsConfigPath), {
+		files: [path.resolve(cwd, 'two-spaces.tsx')],
+		compilerOptions: {
+			newLine: 'lf',
+			noFallthroughCasesInSwitch: true,
+			noImplicitReturns: true,
+			noUnusedLocals: true,
+			noUnusedParameters: true,
+			strict: true,
+			target: 'es2018',
+		},
+	});
+
+	t.deepEqual(omit(result[1], 'options.tsConfigPath'), {
+		files: [path.resolve(cwd, 'child/extra-semicolon.ts')],
+		options: {
+			semicolon: false,
+			cwd: path.resolve(cwd, 'child'),
+			extensions: DEFAULT_EXTENSION,
+			ignores: DEFAULT_IGNORES,
+			ts: true,
+		},
+		prettierOptions: {},
+	});
+
+	t.deepEqual(omit(result[2], 'options.tsConfigPath'), {
+		files: [path.resolve(cwd, 'child/sub-child/four-spaces.ts')],
+		options: {
+			space: 2,
+			cwd: path.resolve(cwd, 'child/sub-child'),
+			extensions: DEFAULT_EXTENSION,
+			ignores: DEFAULT_IGNORES,
+			ts: true,
+		},
+		prettierOptions: {},
+	});
+
+	// Verify that we use the same temporary tsconfig.json for both files group sharing the same original tsconfig.json even if they have different xo config
+	t.is(result[1].options.tsConfigPath, result[2].options.tsConfigPath);
+	t.deepEqual(await readJson(result[1].options.tsConfigPath), {
+		extends: path.resolve(cwd, 'child/tsconfig.json'),
+		files: [path.resolve(cwd, 'child/extra-semicolon.ts'), path.resolve(cwd, 'child/sub-child/four-spaces.ts')],
+		include: [
+			slash(path.resolve(cwd, 'child/**/*.ts')),
+			slash(path.resolve(cwd, 'child/**/*.tsx')),
+		],
+	});
+
+	const secondResult = await manager.mergeWithFileConfigs(paths, {cwd}, configFiles);
+
+	// Verify that on each run the options.tsConfigPath is consistent to preserve ESLint cache
+	t.is(result[0].options.tsConfigPath, secondResult[0].options.tsConfigPath);
+	t.is(result[1].options.tsConfigPath, secondResult[1].options.tsConfigPath);
 });
 
 test('applyOverrides', t => {
