@@ -1,6 +1,6 @@
 {
-	"name": "xo-browser-focused-fork",
-	"version": "0.45.1",
+	"name": "xo",
+	"version": "0.45.43",
 	"description": "JavaScript/TypeScript linter (ESLint wrapper) with great defaults",
 	"license": "MIT",
 	"repository": "xojs/xo",
