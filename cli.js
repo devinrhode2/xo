@@ -53,6 +53,9 @@ const cli = meow(`
 		fix: {
 			type: 'boolean',
 		},
+		low_memory: {
+			type: 'boolean',
+		},
 		reporter: {
 			type: 'string',
 		},
